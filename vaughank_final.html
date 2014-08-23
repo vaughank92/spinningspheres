@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang = "en">
+	<head>
+		<title>Katie Vaughan</title>
+		<meta charset = "utf-8">
+		<style>
+			body {
+				margin: 0px;
+				background-color: #000000;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src = "https://raw.github.com/mrdoob/three.js/master/build/three.js"></script>
+		<script src = "https://raw.github.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+
+		<script>
+			//basic needed variables
+			var camera, scene, renderer;
+
+			var controls;
+
+			var floor, mirrorCubeCamera;
+
+			//timer
+			var start = Date.now();
+
+			init();
+
+			animate();
+
+			function init()
+			{
+				//what the scene contains
+				//basic scene creation
+				scene = new THREE.Scene();
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				document.body.appendChild(renderer.domElement);
+
+				//camera functions
+				//allows the camera to be mobile within the scene
+				camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 1, 2000);
+				camera.position.set(0, 150, 800);
+				//camera.lookAt(scene.position);
+				controls = new THREE.OrbitControls(camera);
+				controls.addEventListener('change', render);
+
+				
+				//reflective surface
+				//referenced from http://stemkoski.github.io/Three.js/Reflection.html
+				//another camera is needed for it to be able to view the scene that is playing in front of it
+				var floorGeometry = new THREE.PlaneGeometry(5000,5000,1,1);
+				mirrorCubeCamera = new THREE.CubeCamera(0.1, 5000, 512);
+				//child[0]
+				scene.add(mirrorCubeCamera);
+				var floorMaterial = new THREE.MeshBasicMaterial({ envMap: mirrorCubeCamera.renderTarget});
+				
+				floor = new THREE.Mesh(floorGeometry, floorMaterial);
+				floor.position.set(0,0,0);
+				mirrorCubeCamera.position = floor.position;
+				//floor.rotation.x = Math.PI/4;
+				//child[1]
+				scene.add(floor);
+
+				//texture pulled from http://stemkoski.github.io/Three.js/
+				var sunTexture = new THREE.ImageUtils.loadTexture('lava.jpg');
+				var sunsphere = new THREE.SphereGeometry(75,50,50);
+				var sunMaterial = new THREE.MeshPhongMaterial({map: sunTexture, color: 0xFFFF00, ambient: 0xFFFF00});
+				var sunsphere = new THREE.Mesh(sunsphere, sunMaterial);
+				sunsphere.position.set(0,0,400);
+				//child[2]
+				scene.add(sunsphere);
+
+				//glow effect from http://stemkoski.github.io/Three.js/Simple-Glow.html
+				//sprite material allows for it to be viewed from all sides since the camera is mobile this is ideal for this situation and looks nicer in the reflection
+				var glowMaterial = new THREE.SpriteMaterial(
+				{
+					map: new THREE.ImageUtils.loadTexture('glow.png'), useScreenCoordinates: false, color: 0xff9900, transparent: false, blending: THREE.AdditiveBlending
+				});
+				var glow = new THREE.Sprite(glowMaterial);
+				glow.scale.set(300,300,1.0);
+				glow.position.set(0,0,400);
+				//child[3]
+				scene.add(glow);
+
+				//silk spheres
+				//textures created by me through http://weavesilk.com/
+				var texture1 = new THREE.ImageUtils.loadTexture('image2.png');
+				var geometry1 = new THREE.SphereGeometry(0,25,10);
+				var material1 = new THREE.MeshPhongMaterial({map: texture1, color: 0xffffff, ambient: 0xffffff});
+				var sphere1 = new THREE.Mesh(geometry1, material1);
+				sphere1.position.set(0,400,400);
+				//child[4]
+				scene.add(sphere1);
+
+				var texture2 = new THREE.ImageUtils.loadTexture('image3.png');
+				var geometry2 = new THREE.SphereGeometry(0,25,10);
+				var material2 = new THREE.MeshPhongMaterial({map:texture2, color: 0xffffff, ambient: 0xffffff});
+				var sphere2 = new THREE.Mesh(geometry2, material2);
+				sphere2.position.set(0, 600, 600);
+				scene.add(sphere2);
+
+				var texture3 = new THREE.ImageUtils.loadTexture('image1.png');
+				var geometry3 = new THREE.SphereGeometry(0,25,10);
+				var material3 = new THREE.MeshPhongMaterial({map:texture3, color: 0xffffff, ambient: 0xffffff});
+				var sphere3 = new THREE.Mesh(geometry3, material3);
+				sphere3.position.set(0, 200, 200);
+				scene.add(sphere3);
+
+				//galaxy spheres
+				//textures created by me through http://29a.ch/sandbox/2011/neonflames/
+				var texture4 = new THREE.ImageUtils.loadTexture('download.png');
+				var geometry4 = new THREE.SphereGeometry(0,25,10);
+				var material4 = new THREE.MeshPhongMaterial({map:texture4, color: 0xffffff, ambient: 0xffffff});
+				var sphere4 = new THREE.Mesh(geometry4, material4);
+				sphere4.position.set(0, 100, 100);
+				scene.add(sphere4);
+
+				var texture5 = new THREE.ImageUtils.loadTexture('download3.png');
+				var geometry5 = new THREE.SphereGeometry(0,25,10);
+				var material5 = new THREE.MeshPhongMaterial({map:texture5, color: 0xffffff, ambient: 0xffffff});
+				var sphere5 = new THREE.Mesh(geometry5, material5);
+				sphere5.position.set(0, 500, 500);
+				scene.add(sphere5);
+
+				var texture6 = new THREE.ImageUtils.loadTexture('pict.png');
+				var geometry6 = new THREE.SphereGeometry(0,25,10);
+				var material6 = new THREE.MeshPhongMaterial({map:texture6, color: 0xffffff, ambient: 0xffffff});
+				var sphere6 = new THREE.Mesh(geometry6, material6);
+				sphere6.position.set(0, 300, 300);
+				scene.add(sphere6);
+				
+				var light1 = new THREE.AmbientLight(0x404040 ); // soft white light
+				scene.add( light1 );
+					
+				var hlight = new THREE.HemisphereLight(0xffffff, 0xffffff, .25);
+				scene.add(hlight);
+
+				var light = new THREE.PointLight();
+				light.position.set(0,150,600);
+				scene.add(light);
+
+
+				window.addEventListener('resize', onWindowResize, false);
+
+			}
+
+			function onWindowResize()
+			{
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			function animate()
+			{
+				requestAnimationFrame(animate);
+				render();
+				update();
+			}
+
+			function update()
+			{
+				controls.update();
+			}
+			function render()
+			{
+
+				var timer = Date.now() - start;
+
+				//rotate the sunshape
+				scene.children[2].rotation.x = timer * .003;
+				scene.children[2].rotation.y = timer * .002;
+
+				for(var i = 4, l = scene.children.length; i < l - 3; i++)
+				{
+					var object = scene.children[i];
+
+						//changes the position so the children move in a circle
+					object.position.y = Math.cos(timer * i * 0.0002)* 150;
+					object.position.x = Math.sin(timer * i * 0.0002)* -150;
+					
+
+					//rotates each child
+					object.rotation.x = timer * .003;
+					object.rotation.y = timer * .002;
+
+					//alters the scale of each child
+					//each object fades forward and back
+					object.scale.x = Math.cos(timer * .0002);
+					object.scale.y = Math.cos(timer * .0002);
+					object.scale.z = Math.cos(timer * .0002);
+
+				}	
+				
+				//allows for the mirror wall behind to update the rendering
+				floor.visible = false;
+				mirrorCubeCamera.updateCubeMap(renderer, scene);
+				floor.visible = true;
+
+				renderer.render(scene,camera);
+
+			}
+		</script>
+	</body>
+</html>
